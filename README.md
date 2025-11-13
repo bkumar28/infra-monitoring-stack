@@ -381,6 +381,57 @@ After modifying templates or `.env`:
 
 ---
 
+### Prometheus Alert Rules
+
+If alerts are not firing or showing as inactive in Prometheus:
+
+1. **Check Prometheus Targets**
+```bash
+http://localhost:9090/targets
+```
+   Ensure all targets show **State: UP**.
+
+2. **Verify Node Exporter Metrics**
+```bash
+curl http://localhost:9100/metrics
+```
+   Confirm metrics like `node_memory_MemAvailable_bytes` and `node_filesystem_size_bytes` are available.
+
+3. **Test Alert Expression in Prometheus UI**
+   - Go to **http://localhost:9090/graph**
+   - Enter alert expression, e.g.:
+```promql
+node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes < 0.45
+```
+   - Click **Execute** to verify it returns active targets.
+
+4. **Check Alertmanager Routing and Templates**
+   - Ensure `alertmanager.yml` is referencing correct labels:
+```yaml
+*Instance:* {{ $labels.instance }}
+*Summary:* {{ .CommonAnnotations.summary }}
+```
+   - Incorrect use of `{{ .instance }}` may fail template rendering.
+
+5. **Slack Notifications**
+   - Confirm Slack webhook is correctly saved in `secrets/slack_webhook.txt`
+   - Ensure `.env` has the correct `SLACK_CHANNEL`.
+   - Check Alertmanager logs:
+```bash
+docker logs -f alertmanager
+```
+
+6. **Force Regeneration of Configs**
+```bash
+./scripts/init-stack.sh --step=prometheus,alertmanager,alert_rules
+./scripts/docker-stack.sh restart
+```
+
+7. **Adjust Alert Thresholds Temporarily**
+   For testing, lower thresholds (e.g., memory usage > 50%) to trigger alerts immediately.
+
+---
+
 ## Contributing
 
 Contributions are welcome! Please follow these steps:

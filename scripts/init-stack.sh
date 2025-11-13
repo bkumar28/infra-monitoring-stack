@@ -316,8 +316,7 @@ generate_alert_rules() {
   [[ ! -f "$ENV_FILE" ]] && { log_error ".env missing!"; exit 1; }
 
   mkdir -p "$GENERATED_DIR"
-  set -a; source "$ENV_FILE"; set +a
-  envsubst < "$ALERT_RULES_TEMPLATE" > "$ALERT_RULES_CONFIG"
+  cp "$ALERT_RULES_TEMPLATE" "$ALERT_RULES_CONFIG"
   log_info "Prometheus alert rules generated at $ALERT_RULES_CONFIG"
 }
 

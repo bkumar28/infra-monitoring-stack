@@ -1,20 +1,42 @@
 groups:
   - name: SystemAlerts
     rules:
+      # ⚠️ Warning: Memory usage >= 55%
       - alert: HighMemoryUsage
-        expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes < 0.2
+        expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes < 0.45
         for: 2m
         labels:
           severity: warning
         annotations:
-          summary: "High memory usage detected"
-          description: "Instance {{ $labels.instance }} memory usage is above 80%."
+          summary: "High memory usage detected (Warning)"
+          description: "Instance {{ $labels.instance }} memory usage is above 55%."
 
+      # 🔥 Critical: Memory usage >= 85%
+      - alert: CriticalMemoryUsage
+        expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes < 0.15
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical memory usage detected"
+          description: "Instance {{ $labels.instance }} memory usage is above 85%."
+
+      # ⚠️ Warning: Disk usage >= 80%
       - alert: HighDiskUsage
         expr: (node_filesystem_size_bytes - node_filesystem_free_bytes) / node_filesystem_size_bytes > 0.8
         for: 5m
         labels:
           severity: warning
         annotations:
-          summary: "High disk usage detected"
+          summary: "High disk usage detected (Warning)"
           description: "Instance {{ $labels.instance }} disk usage is above 80%."
+
+      # 🔥 Critical: Disk usage >= 90%
+      - alert: CriticalDiskUsage
+        expr: (node_filesystem_size_bytes - node_filesystem_free_bytes) / node_filesystem_size_bytes > 0.9
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical disk usage detected"
+          description: "Instance {{ $labels.instance }} disk usage is above 90%."

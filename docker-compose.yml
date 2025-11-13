@@ -11,6 +11,9 @@ services:
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
+    depends_on:
+      - node-exporter
+      - alertmanager
     restart: unless-stopped
 
   node-exporter:
@@ -32,6 +35,8 @@ services:
       - grafana_admin_password
     volumes:
       - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
     restart: unless-stopped
 
   alertmanager:
@@ -42,7 +47,6 @@ services:
     ports:
       - "${ALERTMANAGER_PORT}:${ALERTMANAGER_PORT}"
     secrets:
-      - alertmanager_password
       - slack_webhook
     command:
       - '--config.file=/etc/alertmanager/alertmanager.yml'
@@ -55,7 +59,5 @@ volumes:
 secrets:
   grafana_admin_password:
     file: ./secrets/grafana_admin_password.txt
-  alertmanager_password:
-    file: ./secrets/alertmanager_password.txt
   slack_webhook:
     file: ./secrets/slack_webhook.txt
