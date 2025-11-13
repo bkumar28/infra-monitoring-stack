@@ -205,3 +205,12 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Auto-generated secrets and configuration files
+# These files may contain sensitive information and should not be committed to version control.
+# Modify these patterns according to your project's structure and requirements.
+# Secrets
+secrets/*
+
+# Auto Generated configuration files by init-stack.sh script
+generated_configs/*

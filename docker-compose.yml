@@ -1,36 +1,61 @@
-version: '3.8'
-
 services:
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus_data:/prometheus        # Persistent volume for Prometheus
+      - ./generated_configs/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./generated_configs/alert_rules.yml:/etc/prometheus/alert_rules.yml
+      - prometheus_data:/prometheus
     ports:
-      - "9090:9090"
+      - "${PROMETHEUS_PORT}:${PROMETHEUS_PORT}"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
     restart: unless-stopped
 
   node-exporter:
     image: prom/node-exporter:latest
     container_name: node-exporter
     ports:
-      - "9100:9100"
+      - "${NODE_EXPORTER_PORT}:${NODE_EXPORTER_PORT}"
     restart: unless-stopped
 
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
     ports:
-      - "3000:3000"
+      - "${GRAFANA_PORT}:${GRAFANA_PORT}"
     environment:
       - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_PASSWORD_FILE=/run/secrets/grafana_admin_password
+    secrets:
+      - grafana_admin_password
     volumes:
-      - grafana_data:/var/lib/grafana       # Persistent volume for Grafana
+      - grafana_data:/var/lib/grafana
     restart: unless-stopped
 
-# Declare the named volumes below
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: alertmanager
+    volumes:
+      - ./generated_configs/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    ports:
+      - "${ALERTMANAGER_PORT}:${ALERTMANAGER_PORT}"
+    secrets:
+      - alertmanager_password
+      - slack_webhook
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+    restart: unless-stopped
+
 volumes:
   prometheus_data:
   grafana_data:
+
+secrets:
+  grafana_admin_password:
+    file: ./secrets/grafana_admin_password.txt
+  alertmanager_password:
+    file: ./secrets/alertmanager_password.txt
+  slack_webhook:
+    file: ./secrets/slack_webhook.txt
